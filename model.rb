@@ -60,6 +60,7 @@ class Network < Torch::NN::Module
             loop do
                 puts ("\t\t\t\t Working on Step #{step}.")
                 step += 1
+                reward = 0.0
                 done = false
 
                 p @env.board
