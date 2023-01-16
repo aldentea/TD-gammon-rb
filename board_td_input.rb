@@ -1,7 +1,7 @@
 
 module BoardTDInput
 
-    def board_features(board)
+    def board_features(board, current_player)
         players = [1, -1]
         features_vector = []
 
@@ -32,10 +32,9 @@ module BoardTDInput
         end
 
         # input 197 to 198
-        features_vector += player > 0 ? [1.0, 0,0] : [0.0, 1.0]
+        features_vector += current_player > 0 ? [1.0, 0.0] : [0.0, 1.0]
 
-        features_vector.flatten
-
+        features_vector
     end
 
 end

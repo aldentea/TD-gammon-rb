@@ -1,13 +1,15 @@
 
+require_relative 'board'
 
-class BackGammon
+class Backgammon
 
     attr_reader :board
-
+    attr_accessor :player
+    
     def initialize
         #reset 
         #@moves_4 = []
-        @player = 0
+        @player = 1
         @random = Random.new
         @board = Board.new
     end

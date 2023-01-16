@@ -1,20 +1,27 @@
 require 'torch'
 
+require_relative 'environment'
+require_relative 'TD_agent'
+require_relative 'board_td_input'
+
 
 class Network < Torch::NN::Module
-    def initialize(lamda = 0.7, lr = 0.04)
+
+    include BoardTDInput
+
+    def initialize(lambda = 0.7, lr = 0.04)
         super()
         @hidden1 = Torch::NN::Sequential.new(
             Torch::NN::Linear.new(198, 80),
             Torch::NN::Sigmoid.new()
         )
         @output = Torch::NN::Sequential.new(
-            Torch::NN::Linear(80, 1),
-            Torch::NN::Sigmoid()
+            Torch::NN::Linear.new(80, 1),
+            Torch::NN::Sigmoid.new()
         )
         # ※メンバ変数でいいのか？
         @env = Backgammon.new
-        @lamda = lamda
+        @lambda = lambda
         @lr = lr
     end
 
@@ -25,6 +32,7 @@ class Network < Torch::NN::Module
 
     def train(iters)
         agent = TDAgent.new(self)
+        count = 0
         gen_count_new = 0
         gen_count_old = 0
 
@@ -32,76 +40,87 @@ class Network < Torch::NN::Module
             @env.reset
             init_eligibility_trace
 
-            rolls = @env.roll_dice()
-            player = env.random_player()
+            rolls = @env.roll
+            player = @env.random_player()
 
             @env.player = player
             
-            puts("Calculating Weights: {i}")
+            puts("Calculating Weights: #{i}")
             step = 0
             
+            count += 1
             # Saving Model every 100 steps
             if count % 100 == 0
                 Torch.save(state_dict, "net.pth")
+            end
 
-            fake_1 = env # ※deepcopyする。
+            fake_1 = @env # ※deepcopyする。
             #winner_random = play_random_test
 
             loop do
-                puts ("\t\t\t\t Working on Step {step}.")
-                features = Torch.tensor(@env.board_features)
-                p = forward(features)
+                puts ("\t\t\t\t Working on Step #{step}.")
+                step += 1
+                done = false
+
+                p @env.board
+                p rolls
+
+                bf = board_features(@env.board, @env.player)
+                features = Torch.tensor(bf)
+                pp = forward(features)
                 fake_board = @env.board # ※deep copyする
-                actions = @env.all_possible_moves(player, fake_board, rolls)
+                actions = fake_board.all_possible_moves(player, rolls)
 
                 if !actions.empty?
                     fake = @env # ※deepcopyする
-                    action, win_prob = agent.select_best_action(actions, fake, player)
+                    action, win_prob = agent.select_best_action(actions, fake.board, player)
+                    p action
                     if !action.empty?
                         action.each do |a|
-                            reward, done = env.step(a, env.board, player)
+                            reward, done = @env.board.step(player, a)
                         end
                     end
                 end
-                features = Torch.tensor(env.board_features)
+                features = Torch.tensor(board_features(@env.board, @env.player))
                 p_next = forward(features)
 
                 if done
-                    loss = update_weights(p, reward)
+                    loss = update_weights(pp, reward)
                     break
                 else
-                    loss = update_weights(p, p_next)
+                    loss = update_weights(pp, p_next)
                 end
 
-                player = @env.change_player(player)
-                rolls = env.roll_dice()
+                player = @env.change_player
+                rolls = @env.roll
             end
         end
     end
 
 
-    def play_with_weights(p)
+    def play_with_weights(pp)
         init_eligibility_trace()
         zero_grad()
-        p.backward
+        pp.backward
     end
 
     def init_eligibility_trace
-        @eligibility_traces = [Torch.zeros(weights.shape), require_grad: false]
+        parameters
+        @eligibility_traces = parameters.map { 
+            |weights| Torch.zeros(*weights.shape, requires_grad: false)
+        }
     end
 
-    def update_weights(p, p_next)
+    def update_weights(pp, p_next)
         zero_grad
-        p.backward
-
+        pp.backward
+        td_error = 0.0
         Torch.no_grad do
-            td_error = p_next - p
+            td_error = p_next - pp
             
             parameters.each_with_index do |weights, i|
-                @lamda = 0.7
-                @lr = 0.04
-                eligibility_traces[i] = lamda * eligibility_traces[i] * weights.grad
-                new_weights = weights + lr * td_error * eligibility_traces[i]
+                @eligibility_traces[i] = @lambda * @eligibility_traces[i] * weights.grad
+                new_weights = weights + @lr * td_error * @eligibility_traces[i]
                 weights.copy!(new_weights)
                 # weightsをnew_weightsで更新するということ？どうやってやるの？
             end
