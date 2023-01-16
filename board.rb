@@ -3,8 +3,10 @@
 class Board
 
     LENGTH = 28
+    attr_reader :points
 
     def initialize(points = nil)
+        # [0][25] are Goals, [26][27] are bars.
         @points = Array.new(LENGTH, 0)
         reset(points)
     end

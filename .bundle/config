@@ -1,0 +1,2 @@
+---
+BUNDLE_BUILD__TORCH___RB: "--with-torch-dir=C:/programs/libtorch"
