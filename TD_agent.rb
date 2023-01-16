@@ -1,4 +1,5 @@
 require 'torch-rb'
+require_relative 'board_td_input'
 
 class TDAgent
 
@@ -17,13 +18,13 @@ class TDAgent
             values = Array.new(n, 0.0)
             (0...n).each do |i|
                 fake_board = board.deepcopy
-                action.each do |m|  # 1つのactionは、複数のmoveからなる配列である。
+                actions[i].each do |m|  # 1つのactionは、複数のmoveからなる配列である。
                     done = fake_board.step(player, m).at(1)
                 end
-                features = Torch.tensor(board_features(fake_board)) # 198d-input
-                values[i] = @net.forward(features).first
+                features = Torch.tensor(board_features(fake_board, player)) # 198d-input
+                value = @net.forward(features)
+                values[i] = value.item  # .item = .to_a.first
             end
-
             case player
             when 1
                 win_prob = values.max
@@ -39,4 +40,5 @@ class TDAgent
         [best_action, win_prob]
     end
     
+end
 
