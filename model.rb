@@ -9,6 +9,8 @@ class Network < Torch::NN::Module
 
     include BoardTDInput
 
+    FILENAME = "net.pth"
+
     def initialize(lambda = 0.7, lr = 0.04)
         super()
         @hidden1 = Torch::NN::Sequential.new(
@@ -51,7 +53,7 @@ class Network < Torch::NN::Module
             count += 1
             # Saving Model every 100 steps
             if count % 100 == 0
-                Torch.save(state_dict, "net.pth")
+                Torch.save(state_dict, FILENAME)
             end
 
             fake_1 = @env # ※deepcopyする。
@@ -96,6 +98,7 @@ class Network < Torch::NN::Module
                 rolls = @env.roll
             end
         end
+        Torch.save(state_dict, FILENAME)
     end
 
 
@@ -134,6 +137,9 @@ end
 # Training
 
 model = Network.new
+if File.exist?(Network::FILENAME)
+    model.load_state_dict(Torch.load(Network::FILENAME))
+end
 
 i = ARGV.size > 0 ? ARGV[0].to_i : 0
 i = i > 0 ? i : 100
