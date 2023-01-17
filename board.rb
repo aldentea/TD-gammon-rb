@@ -106,16 +106,16 @@ class Board
                     moves.push([m1, m2])
                 end
             end
-=begin
+#=begin
             possible_move(player, rolls[0]).each do |m1|
                 temp_board = self.deepcopy 
                 done = temp_board.step(player, m1).at(1)
                 # possible_second_moves
                 temp_board.possible_move(player, rolls[1]).each do |m2|
-                    moves.push([m2, m1])
+                    moves.push([m1, m2])
                 end
             end
-=end
+#=end
             # ※正規化はしていないのか？
         else # should be rolls.size == 4
             possible_move(player, rolls[1]).each do |m1|
@@ -242,7 +242,7 @@ end
 
 # Tests
 
-#=begin 
+=begin 
 board = Board.new
 p board.all_possible_moves(1, [5,5,5,5])
 
@@ -267,4 +267,4 @@ board = Board.new([0, -2,4,-3,-2,4,3, 0,3,0,0,0,0, 0,-1,0,1,0,0, -4,0,0,-1,0,-1,
 p board.all_possible_moves(-1, [5,1])
 p board.all_possible_moves(-1, [1,5])
 
-#=end
+=end
