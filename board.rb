@@ -46,8 +46,9 @@ class Board
             else # should be @points[25] == 0
                 [2, true]
             end
+        else
+            [0, false]
         end
-        [0, false]
     end
 
     def step(player, move)
@@ -71,7 +72,7 @@ class Board
                 @points[next_pos] += 1
             end
         else # should be player == -1
-            # ↓???
+            # player-1のチェッカーは、[1]-[25]ではマイナスだけど、[27]だけはプラスになる。
             if first_pos == 27
                 @points[27] -= 1
             else
@@ -94,7 +95,7 @@ class Board
         moves = []
 
         if rolls.size == 2
-            # Using first dice.
+            # ※ To be fixed.
 
             # possible_first_moves
             possible_move(player, rolls[1]).each do |m1|
@@ -105,6 +106,16 @@ class Board
                     moves.push([m1, m2])
                 end
             end
+=begin
+            possible_move(player, rolls[0]).each do |m1|
+                temp_board = self.deepcopy 
+                done = temp_board.step(player, m1).at(1)
+                # possible_second_moves
+                temp_board.possible_move(player, rolls[1]).each do |m2|
+                    moves.push([m2, m1])
+                end
+            end
+=end
             # ※正規化はしていないのか？
         else # should be rolls.size == 4
             possible_move(player, rolls[1]).each do |m1|
@@ -119,7 +130,7 @@ class Board
                         temp_board_3 = temp_board_2.deepcopy
                         done = temp_board_3.step(player, m3).at(1)
                         # possible_third_moves
-                        temp_board_3 = possible_move(player, rolls[1]).each do |m4|
+                        temp_board_3.possible_move(player, rolls[1]).each do |m4|
                             moves.push([m1, m2, m3, m4])
                         end
                     end
@@ -231,10 +242,9 @@ end
 
 # Tests
 
-=begin 
+#=begin 
 board = Board.new
-p board.all_possible_moves(-1, [5,5,5,5])
-#p BoardUtil.possible_move(1, board, 1)
+p board.all_possible_moves(1, [5,5,5,5])
 
 board = Board.new([2, -2,3,3,3,2,2, 0,0,0,0,0,-5, 0,0,0,0,-3,0, -5,0,0,0,0,0, 0,0,0])
 p board.all_possible_moves(1, [6,5])
@@ -246,4 +256,15 @@ p board.all_possible_moves(1, [2,6])
 board = Board.new([12, -2,0,0,2,1,0, 0,0,0,0,0,-5, 0,0,0,0,-3,0, -5,0,0,0,0,0, 0,0,0])
 p board.all_possible_moves(1, [1,6])
 
-=end
+board = Board.new([0, 4,-1,0,0,-1,3, 0,3,0,0,-1,0, 1,0,0,0,-2,-1, -6,-2,1,-1,3,0, 0,0,0])
+p board.all_possible_moves(1, [5,5,5,5])
+
+board = Board.new([0, -2,0,0,0,0,5, 0,5,0,0,0,-3, 3,-2,0,0,-2,0, -5,0,-1,0,1,0, 0,1,0])
+p board.all_possible_moves(1, [6,4])
+p board.all_possible_moves(1, [4,6])
+
+board = Board.new([0, -2,4,-3,-2,4,3, 0,3,0,0,0,0, 0,-1,0,1,0,0, -4,0,0,-1,0,-1, 0,0,1])
+p board.all_possible_moves(-1, [5,1])
+p board.all_possible_moves(-1, [1,5])
+
+#=end
