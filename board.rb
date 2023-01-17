@@ -242,7 +242,7 @@ end
 
 # Tests
 
-=begin 
+begin 
 board = Board.new
 p board.all_possible_moves(1, [5,5,5,5])
 
@@ -267,4 +267,8 @@ board = Board.new([0, -2,4,-3,-2,4,3, 0,3,0,0,0,0, 0,-1,0,1,0,0, -4,0,0,-1,0,-1,
 p board.all_possible_moves(-1, [5,1])
 p board.all_possible_moves(-1, [1,5])
 
-=end
+board = Board.new([7, 1,6,0,-1,1,0, 0,0,0,-1,0,0, 0,-1,0,0,-2,0, -4,-1,-3,0,-1,-1, 0,0,0])
+p board.all_possible_moves(1, [6,3])  # should be [ [[5,0],[2,0]], [[5,2],[2,0]] ]
+p board.all_possible_moves(1, [3,6])
+
+end
