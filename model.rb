@@ -41,22 +41,26 @@ class Network < Torch::NN::Module
         (0...iters).each do |i|
             @env.reset
             init_eligibility_trace
+            player = 0
+            rolls = [] # for scope
 
-            rolls = @env.roll
-            player = @env.random_player()
-
-            @env.player = player
-            
-            puts("Calculating Weights: #{i}")
-            step = 0
+            # Initial roll
+            while player == 0
+                rolls = @env.roll
+                player = rolls[0] <=> rolls[1]
+            end
+            @env.player = player    # should be +1 or -1
             
             count += 1
+            puts("Calculating Weights: #{i}")
+            step = 0
+
             # Saving Model every 100 steps
             if count % 100 == 0
                 Torch.save(state_dict, FILENAME)
             end
 
-            fake_1 = @env # ※deepcopyする。
+            #fake_1 = @env # ※deepcopyする。
             #winner_random = play_random_test
 
             loop do
