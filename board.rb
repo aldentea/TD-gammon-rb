@@ -164,9 +164,14 @@ class Board
                     bar_moves.push([26, pos])
                 end
             else
-                if @points[7..24].all?{ |x| x <= 0} && @points[die] > 0
-                    possible_moves.push([die, 0])
-                    terminal_moves.push([die, 0])
+                if @points[7..24].all?{ |x| x <= 0}
+                    die.downto(1) { |i|
+                        if @points[i] > 0
+                            possible_moves.push([i, 0])
+                            terminal_moves.push([i, 0])
+                            break
+                        end
+                    }
                 end
                 
                 possible_start_pos = (1..24).select{ |i| @points[i] > 0}
@@ -182,6 +187,7 @@ class Board
                 end
             end
 
+            # ※これなんのためにあるの？
             if bar_moves.empty? && @points[7..24].all?{ |x| x <= 0} && @points[26] == 0
                 possible_start_pos = (1..24).select{ |i| @points[i] > 0}
                 
